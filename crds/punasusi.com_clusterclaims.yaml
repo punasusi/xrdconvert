@@ -1,0 +1,209 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: clusterclaims.punasusi.com
+spec:
+  group: punasusi.com
+  names:
+    categories:
+    - claim
+    kind: ClusterClaim
+    plural: clusterclaims
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.clusterName
+      name: clusterName
+      type: string
+    - jsonPath: .status.controlPlaneStatus
+      name: controlPlane
+      type: string
+    - jsonPath: .status.nodePoolStatus
+      name: nodePool
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Synced')].status
+      name: SYNCED
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: READY
+      type: string
+    - jsonPath: .spec.writeConnectionSecretToRef.name
+      name: CONNECTION-SECRET
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: AGE
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              compositeDeletePolicy:
+                default: Background
+                enum:
+                - Background
+                - Foreground
+                type: string
+              compositionRef:
+                properties:
+                  name:
+                    type: string
+                required:
+                - name
+                type: object
+              compositionRevisionRef:
+                properties:
+                  name:
+                    type: string
+                required:
+                - name
+                type: object
+              compositionSelector:
+                properties:
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                required:
+                - matchLabels
+                type: object
+              compositionUpdatePolicy:
+                default: Automatic
+                enum:
+                - Automatic
+                - Manual
+                type: string
+              id:
+                description: ID of this Cluster that other objects will use to refer
+                  to it.
+                type: string
+              parameters:
+                properties:
+                  minNodeCount:
+                    default: 1
+                    description: The minimum number of nodes
+                    type: integer
+                  nodeSize:
+                    description: The size of the nodes; small, medium, large
+                    type: string
+                  version:
+                    description: The Kubernetes version for the cluster.
+                    type: string
+                required:
+                - nodeSize
+                type: object
+              publishConnectionDetailsTo:
+                properties:
+                  configRef:
+                    default:
+                      name: default
+                    properties:
+                      name:
+                        type: string
+                    type: object
+                  metadata:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      type:
+                        type: string
+                    type: object
+                  name:
+                    type: string
+                required:
+                - name
+                type: object
+              resourceRef:
+                properties:
+                  apiVersion:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - apiVersion
+                - kind
+                - name
+                type: object
+              resourcegroupname:
+                description: Resourcegroup to be used, only valid for Azure.
+                type: string
+              writeConnectionSecretToRef:
+                properties:
+                  name:
+                    type: string
+                required:
+                - name
+                type: object
+            required:
+            - id
+            - parameters
+            type: object
+          status:
+            properties:
+              clusterName:
+                description: The name of the cluster
+                type: string
+              conditions:
+                description: Conditions of the resource.
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              connectionDetails:
+                properties:
+                  lastPublishedTime:
+                    format: date-time
+                    type: string
+                type: object
+              controlPlaneStatus:
+                description: The status of the control plane
+                type: string
+              nodePoolStatus:
+                description: The status of the node pool
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions: null
